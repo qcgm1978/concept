@@ -155,17 +155,16 @@
             <div class="control-group">
                 <h3>添加概念</h3>
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <input type="text" id="conceptId" placeholder="概念ID (可选，自动生成)">
+                    <div id="manualIdContainer" style="display: none;">
+                        <input type="text" id="conceptId" placeholder="概念ID">
+                    </div>
                     <label style="font-size: 12px;">
-                        <input type="checkbox" id="autoGenId" checked> 自动生成ID
+                        <input type="checkbox" id="autoGenId" checked onchange="toggleManualId()"> 自动生成ID
                     </label>
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                     <label style="font-size: 12px;">
                         <input type="checkbox" id="autoRelateConcept" checked> 自动与现有概念建立关系
-                    </label>
-                    <label style="font-size: 12px;">
-                        <input type="checkbox" id="useOllamaForNewConcept" checked> 使用ollama模型
                     </label>
                 </div>
                 <input type="text" id="conceptName" placeholder="概念名称" required>
@@ -173,25 +172,7 @@
                 <button onclick="addConcept()">添加概念</button>
             </div>
             
-            <div class="control-group">
-                <h3>添加关系</h3>
-                <select id="sourceConcept"></select>
-                <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <input type="text" id="relationType" placeholder="关系类型">
-                        <label style="font-size: 12px;">
-                            <input type="checkbox" id="autoDetectRelation" checked> 自动确定关系类型
-                        </label>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <label style="font-size: 12px;">
-                            <input type="checkbox" id="useOllama" checked> 使用ollama模型(Gemma3:1b)获取关系
-                        </label>
-                    </div>
-                </div>
-                <select id="targetConcept"></select>
-                <button onclick="addRelationship()">添加关系</button>
-            </div>
+
             
             <div class="control-group">
                 <h3>思维操作</h3>
@@ -203,6 +184,24 @@
             </div>
             
             <div class="control-group">
+                <h3>自动关系发现</h3>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <label style="font-size: 12px;">
+                            <input type="checkbox" id="autoDiscoverEnabled"> 启用自动发现
+                        </label>
+                    </div>
+                    <input type="range" id="discoveryThreshold" min="0.3" max="1.0" step="0.1" value="0.5" onchange="window.updateThreshold(this.value)">
+                    <div style="font-size: 12px; color: #666;">置信度阈值: <span id="thresholdValue">0.5</span></div>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="window.discoverRelations()">立即发现</button>
+                        <button onclick="window.toggleAutoDiscovery(event)">自动发现</button>
+                    </div>
+                    <div style="font-size: 12px; color: #666;" id="discoveryStatus">自动发现: 已关闭</div>
+                </div>
+            </div>
+            
+            <div class="control-group">
                 <h3>图控制</h3>
                 <button id="rotateBtn" onclick="toggleRotation()">开始旋转</button>
                 <input type="range" id="rotateSpeed" min="0.1" max="2" step="0.1" value="0.5" onchange="updateRotationSpeed(this.value)">
@@ -211,8 +210,11 @@
         </div>
         
         <div class="output">
-            <h3>思维结果</h3>
-            <div id="results"></div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>思维结果</h3>
+                <button id="toggleResults" onclick="toggleResults()" style="font-size: 12px; padding: 5px 10px;">▼</button>
+            </div>
+            <div id="results" style="display: none;"></div>
         </div>
         
         <div class="output">
@@ -227,6 +229,7 @@
     </div>
     
     <!-- 引入外部JavaScript文件 -->
+    <script src="concept_parameter_model.js"></script>
     <script src="mind_model.js"></script>
 </body>
 </html>
